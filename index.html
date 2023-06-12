@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Fish Farm</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.5.3/dist/web3.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Fish Farm</h1>
+    <div class="mb-3">
+      <button id="hireFishermanBtn" class="btn btn-primary btn-lg me-3">Hire Fisherman</button>
+      <button id="sellFishBtn" class="btn btn-primary btn-lg">Sell Fish</button>
+    </div>
+    <input id="inputField" type="text" class="form-control" style="width: 400px;">
+    <div id="maxReturn"></div>
+    <div id="dailyReturns"></div>
+    <div id="accruedEarnings"></div>
+  </div>
+
+  <script>
+    // Check if Web3 is available
+    if (typeof web3 !== 'undefined') {
+      web3 = new Web3(web3.currentProvider);
+    } else {
+      // Set the provider you want to use (e.g., Infura)
+      // web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID"));
+      console.log('Web3 is not available. Please install a compatible Ethereum browser extension.');
+    }
+
+    // Contract address and ABI
+    const contractAddress = '0x12299809Ae726808e9FA4b652fdb3c6e8a2b1ddE';
+    const contractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"farmer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FishSold","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"farmer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FishermanHired","type":"event"},{"inputs":[],"name":"contractBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"deposits","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"devPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"devUser","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"farmingCycle","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"fishTrade","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"fundManager","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"farmer","type":"address"}],"name":"getAccruedEarnings","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getContractBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"farmer","type":"address"}],"name":"getDepositAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"hireFisherman","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"interestRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"lastWithdrawal","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"farmer","type":"address"}],"name":"myDailyReturns","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"farmer","type":"address"}],"name":"myMaxReturn","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellFish","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"tradeDeposit","outputs":[],"stateMutability":"payable","type":"function"}];
+
+    // Contract instance
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+    // Convert Wei to Ether (ETH)
+    const weiToEth = (wei) => {
+      return web3.utils.fromWei(wei, 'ether');
+    };
+
+    // Display max return
+    const displayMaxReturn = async () => {
+      const accounts = await web3.eth.getAccounts();
+      const userAddress = accounts[0];
+      const maxReturnWei = await contract.methods.myMaxReturn(userAddress).call();
+      const maxReturnEth = weiToEth(maxReturnWei);
+      const formattedMaxReturn = Number(maxReturnEth).toFixed(5);
+      document.getElementById("maxReturn").innerText = "Max Return: " + formattedMaxReturn + " AVAX";
+    };
+
+    // Display daily returns
+    const displayDailyReturns = async () => {
+      const accounts = await web3.eth.getAccounts();
+      const userAddress = accounts[0];
+      const dailyReturnsWei = await contract.methods.myDailyReturns(userAddress).call();
+      const dailyReturnsEth = weiToEth(dailyReturnsWei);
+      const formattedDailyReturns = Number(dailyReturnsEth).toFixed(5);
+      document.getElementById("dailyReturns").innerText = "Daily Returns: " + formattedDailyReturns + " AVAX";
+    };
+
+    // Display accrued earnings
+    const displayAccruedEarnings = async () => {
+      const accounts = await web3.eth.getAccounts();
+      const userAddress = accounts[0];
+      const accruedEarningsWei = await contract.methods.getAccruedEarnings(userAddress).call();
+      const accruedEarningsEth = weiToEth(accruedEarningsWei);
+      const formattedAccruedEarnings = Number(accruedEarningsEth).toFixed(7);
+      document.getElementById("accruedEarnings").innerText = "Accrued Earnings: " + formattedAccruedEarnings + " AVAX";
+    };
+
+    // Event listener for "Hire Fisherman" button click
+    $('#hireFishermanBtn').click(async () => {
+      // Get the entered Ether value
+      const enteredValue = $('#inputField').val();
+      if (!enteredValue) {
+        console.error('Please enter a value');
+        return;
+      }
+      // Convert the entered Ether value to Wei
+      const amountInWei = web3.utils.toWei(enteredValue.toString(), 'ether');
+
+      // Call the contract's hireFisherman function
+      try {
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        const result = await contract.methods.hireFisherman().send({ from: accounts[0], value: amountInWei });
+        console.log('Hire Fisherman transaction successful:', result);
+        displayMaxReturn();
+        displayDailyReturns();
+        displayAccruedEarnings();
+      } catch (error) {
+        console.error('Hire Fisherman transaction failed:', error);
+      }
+    });
+
+    // Event listener for "Sell Fish" button click
+    $('#sellFishBtn').click(async () => {
+      // Call the contract's sellFish function
+      try {
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        const result = await contract.methods.sellFish().send({ from: accounts[0] });
+        console.log('Sell Fish transaction successful:', result);
+        displayMaxReturn();
+        displayDailyReturns();
+        displayAccruedEarnings();
+      } catch (error) {
+        console.error('Sell Fish transaction failed:', error);
+      }
+    });
+
+    // Initialize the page
+    displayMaxReturn();
+    displayDailyReturns();
+    displayAccruedEarnings();
+  </script>
+</body>
+</html>
